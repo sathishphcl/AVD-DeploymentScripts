@@ -1,0 +1,144 @@
+name: 4-Create-AVD-Host-Pool
+on: workflow_dispatch
+
+jobs:
+  build:
+    name: 4-Create-AVD-Host-Pool
+    runs-on: windows-latest
+    steps:
+    # Authentication: log on to Azure with the AZURE_AVD_SP secret
+    - name: Login via Az module
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_AVD_SP}}
+        enable-AzPSSession: true 
+    
+    # Azure PowerShell: Run inline script    
+    - name: Run Azure PowerShell script (inline)
+      uses: azure/powershell@v1
+      with:
+        inlineScript: |
+          # Read the environment variables in PowerShell
+          $Tags = @{"Environment"="PRD"; "Maintenance"="Thursday"}
+          $CustomerPrefix = "Ucorptest"
+          $ResourceGroup = "Ucorp-AVDTEST-RG"
+          $WorkspaceResourceGroup = "Ucorp-Logging-RG"
+          $StorageResourceGroup = "Ucorp-Storage-RG"
+          $StorageAccount = "ucorpavdstd"
+          $LogAnalyticsWorkspace = "Ucorp-AVD-LAW"
+          $Sig = "ucorpavdsig" 
+          $SigImageDefName = "Ucorp-AVD-Image"
+          $VMSize = "Standard_D4s_v3" # Standard_D8s_v3
+          $VMDiskType = "StandardSSD_LRS" # Premium_LRS
+          $VaultName = "Ucorp-AVD-KV"
+          $HostPoolName = "Ucorp-Test-Pool"
+          $workSpaceName = "Ucorp-Test-Workspace"
+          $NumberOfInstances = 2
+          $SecurityGroup = "SG_AVD_Users"
+          $VNetName = "Ucorp-vNet"
+          $SubnetName = "Ucorp-WVD-Subnet"
+          $VNetResourceGroup = "Ucorp-Network-RG"
+          $Cores = "4"
+          $Ram = "16"
+
+          # Retrieve sensitive information from KeyVault
+          $secureAdminPassword = (Get-AzKeyVaultSecret -VaultName $VaultName -Name domainadminpassword).SecretValue
+          $secureDomainAdminUser = (Get-AzKeyVaultSecret -VaultName $VaultName -Name domainadminuser).SecretValue
+          $secureDomainName = (Get-AzKeyVaultSecret -VaultName $VaultName -Name domainname).SecretValue
+          $secureOuPath = (Get-AzKeyVaultSecret -VaultName $VaultName -Name domainoupath).SecretValue
+
+          # Convert KeyVault SecureString to Plaintext
+          $domainAdminUser = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureDomainAdminUser)))
+          $domainName = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureDomainName)))
+          $ouPath = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureOuPath)))
+
+          # Create the resource group if needed
+          try {
+              Get-AzResourceGroup -Name $ResourceGroup -ErrorAction Stop
+          } catch {
+              New-AzResourceGroup -Name $ResourceGroup -Location "westeurope" -Tag $Tags
+          }
+
+          ## Create a Template Parameter Object (hashtable)
+          $objTemplateParameter = @{
+            "hostpoolName" = $HostPoolName;
+            "hostpoolTags" = $Tags;
+            "hostpoolDescription" = "Created by GitHub Actions, PowerShell and ARM Template";
+            "location" = "westeurope";
+            "validationEnvironment" = $false;
+            "workSpaceName" = $workSpaceName;
+            "isNewWorkspace" = $true;
+            "addToWorkspace" = $true;
+            "workspaceLocation" = "westeurope";
+            "workspaceResourceGroup" = $ResourceGroup;
+            "allApplicationGroupReferences" = "";
+            "applicationGroupTags" = $Tags;
+            "createAvailabilitySet" = $true;
+            "availabilitySetTags" = $Tags;
+            "availabilityOption" = "AvailabilityZone";
+            "availabilityZone" = 1;
+            "customRdpProperty" = "audiocapturemode:i:1;camerastoredirect:s:*;"
+            "vmResourceGroup" = $ResourceGroup;
+            "vmLocation" = "westeurope";
+            "vmSize" = $VMSize;
+            "vmNumberOfInstances" = $NumberOfInstances;
+            "vmNamePrefix" = "$($CustomerPrefix)-AVD";
+            "vmImageType" = "CustomImage";
+            "vmCustomImageSourceId" = "/subscriptions/${{secrets.AZURE_SUBSCRIPTIONID}}/resourceGroups/$ResourceGroup/providers/Microsoft.Compute/galleries/$Sig/images/$SigImageDefName";
+            "bootDiagnostics" = @{"storageUri"="https://$StorageAccount.blob.core.windows.net/"};
+            "hostpoolDiagnosticSettingsStorageAccount" = "/subscriptions/${{secrets.AZURE_SUBSCRIPTIONID}}/resourceGroups/$StorageResourceGroup/providers/Microsoft.Storage/storageAccounts/$StorageAccount";
+            "hostpoolDiagnosticSettingsLogAnalyticsWorkspaceId" = "/subscriptions/${{secrets.AZURE_SUBSCRIPTIONID}}/resourcegroups/$WorkspaceResourceGroup/providers/microsoft.operationalinsights/workspaces/$LogAnalyticsWorkspace";
+            "imageTags" = $Tags;
+            "vmDiskType" = $VMDiskType;
+            "vmUseManagedDisks" = $true;
+            "existingVnetName" = $VNetName;
+            "networkInterfaceTags" = $Tags;
+            "existingSubnetName" = $SubnetName;
+            "virtualNetworkResourceGroupName" = $VNetResourceGroup;
+            "createNetworkSecurityGroup" = $false;
+            "networkSecurityGroupTags" = $Tags;
+            "virtualMachineTags" = $Tags;
+            "hostpoolType" = "Pooled";
+            "maxSessionLimit" = 8;
+            "aadJoin" = $false;
+            "intune" = $false;
+            "loadBalancerType" = "DepthFirst";
+            "vmTemplate" = "{`"domain`"`:`"$domainName`",`"galleryImageOffer`"`:null,`"galleryImagePublisher`"`:null,`"galleryImageSKU`"`:null,`"imageType`"`:`"CustomImage`",`"imageUri`"`:null,`"customImageId`"`:`"/subscriptions/${{secrets.AZURE_SUBSCRIPTIONID}}/resourceGroups/Ucorp-WVD-RG/providers/Microsoft.Compute/galleries/$Sig/images/$SigImageDefName`",`"namePrefix`":`"$($CustomerPrefix)-AVD`",`"osDiskType`"`:`"$VMDiskType`",`"useManagedDisks`"`:true,`"vmSize`"`:{`"id`"`:`"$VMDiskType`",`"cores`"`:$Cores,`"ram`"`:$Ram},`"galleryItemId`"`:null}";
+            "tokenExpirationTime" = $(Get-Date ((Get-Date).AddDays(25)) -Format "yyyy-MM-ddTHH:mm:ss.fffZ");
+            "apiVersion" = "2019-12-10-preview";
+            "administratorAccountUsername" = $domainAdminUser;
+            "administratorAccountPassword" = $secureAdminPassword;
+            "domain"= $domainName;
+            "ouPath"= $ouPath;
+          }
+
+          # Temp location for the ARM template that will be used by this script (discarded when runbook is finished)
+          $jsonARMTemplateFile = [string]($env:TEMP + "\4-ARM-Create-AVD-Hostpool.json")
+
+          # Storage location for custom ARM template
+          $templateUrl="https://raw.githubusercontent.com/iuenk/AVD/main/ARMTemplates/4-ARM-Create-AVD-Hostpool.json"
+
+          # Retrieve the template file and save it in a temp file location
+          Invoke-WebRequest -Uri $templateUrl -OutFile $jsonARMTemplateFile -UseBasicParsing
+
+          # ARM Template file
+          ## Add SessionHosts to existing WVD Hostpool, based on ARM Template
+          New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroup -TemplateFile $jsonARMTemplateFile -TemplateParameterObject $objTemplateParameter -Tag $Tags -Verbose
+          
+          # Configuring WVD Application groups
+          Update-AzWvdDesktop -ResourceGroupName $ResourceGroup -ApplicationGroupName "$HostPoolName-DAG" -Name SessionDesktop -FriendlyName "$CustomerPrefix Workspace"
+          $ResourceIDHostPool = Get-AzResource -ResourceGroupName $ResourceGroup | Where-Object {$_.Name -like $HostPoolName} | Select-Object -ExpandProperty ResourceID
+          New-AzWvdApplicationGroup -ResourceGroupName $ResourceGroup -Location "westeurope" -Name "$HostPoolName-RAG" -HostPoolArmPath $ResourceIDHostPool -ApplicationGroupType RemoteApp -Tag $Tags
+
+          $ResourceIDDesktopGroup = Get-AzResource -ResourceGroupName $ResourceGroup | Where-Object {$_.Name -eq "$HostPoolName-DAG"} | Select-Object -ExpandProperty ResourceID
+          $ResourceIDRemoteAppGroup = Get-AzResource -ResourceGroupName $ResourceGroup | Where-Object {$_.Name -eq "$HostPoolName-RAG"} | Select-Object -ExpandProperty ResourceID
+
+          $ApplicationGroupReference = "$ResourceIDDesktopGroup","$ResourceIDRemoteAppGroup"
+          Update-AzWvdWorkspace -ResourceGroupName $ResourceGroup -Name $workSpaceName -ApplicationGroupReference $ApplicationGroupReference
+
+          #Add AD group to new created Groups
+          $SecurityGroupId = (Get-AzADGroup -DisplayName $SecurityGroup).Id
+          New-AzRoleAssignment -ObjectId $SecurityGroupId -RoleDefinitionName "Desktop Virtualization User" -ResourceName "$HostPoolName-DAG" -ResourceGroupName $ResourceGroup -ResourceType 'Microsoft.DesktopVirtualization/applicationGroups'
+          New-AzRoleAssignment -ObjectId $SecurityGroupId -RoleDefinitionName "Desktop Virtualization User" -ResourceName "$HostPoolName-RAG" -ResourceGroupName $ResourceGroup -ResourceType 'Microsoft.DesktopVirtualization/applicationGroups'
+
+        azPSVersion: 'latest'

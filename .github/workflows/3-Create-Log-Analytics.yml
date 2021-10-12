@@ -1,0 +1,58 @@
+name: 3-Create-Log-Analytics
+on: workflow_dispatch
+
+jobs:
+  build:
+    name: 3-Create-Log-Analytics
+    runs-on: windows-latest
+    steps:
+    # Authentication: log on to Azure with the AZURE_AVD_SP secret
+    - name: Login via Az module
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_AVD_SP}}
+        enable-AzPSSession: true 
+    
+    # Azure PowerShell: Run inline script    
+    - name: Run Azure PowerShell script (inline)
+      uses: azure/powershell@v1
+      with:
+        inlineScript: |
+          # Read the environment variables in PowerShell
+          $Tags = @{"Environment"="PRD"}
+          $ResourceGroup = "Ucorp-Logging-RG"
+          $StorageAccoutResourceGroup = "Ucorp-Storage-RG"
+          $StorageAccountName = "ucorpavdstd"
+          $WorkspaceName = "Ucorp-AVD-LAW"
+
+          # Create the resource group if needed
+          try {
+            Get-AzResourceGroup -Name $ResourceGroup -ErrorAction Stop
+          } catch {
+            New-AzResourceGroup -Name $ResourceGroup -Location "westeurope" -Tag $Tags
+          }
+
+          ## Create a Template Parameter Object (hashtable)
+          $objTemplateParameter = @{
+          "workspaceName" = $WorkspaceName;
+          "location" = "westeurope";
+          "dataRetention" = 30;
+          "sku" = "PerGB2018";
+          "applicationDiagnosticsStorageAccountResourceGroup" = $StorageAccoutResourceGroup;
+          "applicationDiagnosticsStorageAccountName" = $StorageAccountName;
+          }
+
+          # Temp location for the ARM template that will be used by this script (discarded when runbook is finished)
+          $jsonARMTemplateFile = [string]($env:TEMP + "\3-ARM-Create-Log-Analytics.json")
+                
+          # storage location for custom ARM template
+          $templateUrl="https://raw.githubusercontent.com/iuenk/AVD/main/ARMTemplates/3-ARM-Create-Log-Analytics.json"
+
+          # Retrieve the template file and save it in a temp file location
+          Invoke-WebRequest -Uri $templateUrl -OutFile $jsonARMTemplateFile -UseBasicParsing
+
+          # ARM Template file
+          ## Create Log Analytics Workspace and Solutions
+          New-AzResourceGroupDeployment -ResourceGroupName $ResourceGroup -TemplateFile $jsonARMTemplateFile -TemplateParameterObject $objTemplateParameter -Tag $Tags -Verbose
+
+        azPSVersion: 'latest'

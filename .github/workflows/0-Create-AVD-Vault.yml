@@ -1,0 +1,52 @@
+name: 0-Create-AVD-Vault
+on: workflow_dispatch
+
+jobs:
+  build:
+    name: 0-Create-AVD-Vault
+    runs-on: windows-latest
+    steps:
+    # Authentication: log on to Azure with the AZURE_AVD_SP secret
+    - name: Login via Az module
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_AVD_SP}}
+        enable-AzPSSession: true 
+    
+    # Azure PowerShell: Run inline script    
+    - name: Run Azure PowerShell script (inline)
+      uses: azure/powershell@v1
+      with:
+        inlineScript: |
+          # Read the environment variables in PowerShell
+          $Tags = @{"Environment"="PRD"}
+          $ServicePrincipalName = "ucorp-avd-sp"
+          $ResourceGroup = "Ucorp-Vault-RG"
+          $VaultName = "Ucorp-AVD-KV"
+
+          # Create the resource group if needed
+          try {
+              Get-AzResourceGroup -Name $ResourceGroup -ErrorAction Stop
+              } catch {
+              New-AzResourceGroup -Name $ResourceGroup -Location "westeurope" -Tag $Tags
+              }
+
+          # Create new Key Vault
+          $domainadminuser = ConvertTo-SecureString ${{secrets.ADJOIN_USERNAME}} -AsPlainText -Force
+          $domainadminpassword = ConvertTo-SecureString ${{secrets.ADJOIN_PASSWORD}} -AsPlainText -Force
+          $domainname = ConvertTo-SecureString "ucorp.local" -AsPlainText -Force
+          $domainoupath = ConvertTo-SecureString "OU=AVD,OU=Ucorp,DC=ucorp,DC=local" -AsPlainText -Force 
+
+          $spid = (Get-AzADServicePrincipal -DisplayName $ServicePrincipalName).Id
+          New-AzKeyVault -Name $VaultName -ResourceGroupName $ResourceGroup -Location "westeurope" -Sku "standard" -Tag $Tags -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 120
+
+          Set-AzKeyVaultAccessPolicy -VaultName $VaultName -ObjectId $spid -PermissionsToSecrets get,set,delete,list
+          Start-Sleep -Seconds 30
+
+          Set-AzKeyVaultSecret -VaultName $VaultName -Name "domainadminuser" -SecretValue $domainadminuser
+          Set-AzKeyVaultSecret -VaultName $VaultName -Name "domainadminpassword" -SecretValue $domainadminpassword
+          Set-AzKeyVaultSecret -VaultName $VaultName -Name "domainname" -SecretValue $domainname
+          Set-AzKeyVaultSecret -VaultName $VaultName -Name "domainoupath" -SecretValue $domainoupath
+        
+        azPSVersion: 'latest'

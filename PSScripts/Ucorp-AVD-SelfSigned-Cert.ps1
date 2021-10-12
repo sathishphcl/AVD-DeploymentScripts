@@ -1,0 +1,1 @@
+New-SelfSignedCertificate -Type Custom -Subject "CN=Ucorp" -CertStoreLocation "cert:\LocalMachine\My" -KeyUsage DigitalSignature -KeyAlgorithm RSA -KeyLength 2048 -KeyExportPolicy Exportable -NotAfter (Get-Date).AddYears(5)
