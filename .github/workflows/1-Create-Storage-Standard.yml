@@ -23,7 +23,7 @@ jobs:
           $storageAccountName = "ucorpavdstd"
           $containerName = "ucorpavdrepo"
           $ResourceGroup = "Ucorp-Storage-RG"
-          $accountType = "Standard_LRS"
+          $accountType = "Standard_LRS" #Standard_ZRS
           $kind = "StorageV2"
 
           # Create the resource group if needed
