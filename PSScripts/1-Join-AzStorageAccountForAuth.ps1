@@ -7,6 +7,7 @@ $StorageAccountPrem = "ucorpavdprem"
 $OU = "OU=SA,DC=ucorp,DC=local"
 $SecurityGroupUsers = "SG_AVD_Users"
 $SecurityGroupAdmins = "SG_AVD_Admins"
+$SecurityGroupHosts = "SG_AVD_Hosts"
 $servicePrincipalApplicationID  = "<ServicePrincipalName.Id>"
 $servicePrincipalPassword = "<AccessKey>"
 
@@ -50,6 +51,7 @@ $Msix = "msixappattach"
 # rechten nog zetten op de shares
 $SecurityGroupIDUsers = (Get-AzADGroup -DisplayName $SecurityGroupUsers).id
 $SecurityGroupIDAdmins = (Get-AzADGroup -DisplayName $SecurityGroupAdmins).id
+$SecurityGroupIDHosts = (Get-AzADGroup -DisplayName $SecurityGroupHosts).id
 $fslogixOfficeId = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.storage/storageAccounts/$StorageAccountPrem/fileServices/default/fileshares/$fslogixOffice"
 $fslogixProfilesId = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.storage/storageAccounts/$StorageAccountPrem/fileServices/default/fileshares/$fslogixProfiles"
 $MsixId = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/providers/Microsoft.storage/storageAccounts/$StorageAccountStd/fileServices/default/fileshares/$Msix"
@@ -58,6 +60,7 @@ $MsixId = "/subscriptions/$SubscriptionId/resourceGroups/$ResourceGroup/provider
 New-AzRoleAssignment -ObjectID $SecurityGroupIDUsers -RoleDefinitionName "storage File Data SMB Share Contributor" -Scope $fslogixOfficeId
 New-AzRoleAssignment -ObjectID $SecurityGroupIDUsers -RoleDefinitionName "storage File Data SMB Share Contributor" -Scope $fslogixProfilesId
 New-AzRoleAssignment -ObjectID $SecurityGroupIDUsers -RoleDefinitionName "storage File Data SMB Share Contributor" -Scope $MsixId
+New-AzRoleAssignment -ObjectID $SecurityGroupIDHosts -RoleDefinitionName "storage File Data SMB Share Contributor" -Scope $MsixId
 
 # To give AVD admins to the file share (Kerberos), enable identity-based authentication for the storage account
 New-AzRoleAssignment -ObjectID $SecurityGroupIDAdmins -RoleDefinitionName "Storage File Data SMB Share Elevated Contributor" -Scope $fslogixOfficeId
