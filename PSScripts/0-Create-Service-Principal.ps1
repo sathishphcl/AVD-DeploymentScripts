@@ -6,7 +6,7 @@ $subscriptionID = "<subscriptionId>"
 # Make connection with tenant
 Connect-AzAccount -TenantId $tenantID -SubscriptionId $subscriptionID
           
-# Needed for AZURE_CREDENTIALS 
+# Create Service Principal and get credentials
 $sp = New-AzADServicePrincipal -DisplayName "$CustomerPrefix-avd-sp"
 $clientsec = [System.Net.NetworkCredential]::new("", $sp.Secret).Password
 $tenantID = (get-aztenant).Id
