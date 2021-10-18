@@ -7,8 +7,7 @@ $StorageAccountPrem = "ucorpavdprem"
 $OU = "OU=SA,DC=ucorp,DC=local"
 $SecurityGroupUsers = "SG_AVD_Users"
 $SecurityGroupAdmins = "SG_AVD_Admins"
-$ServicePrincipalName = "ucorp-avd-sp"
-$servicePrincipalApplicationID  = (Get-AzADServicePrincipal -DisplayName $ServicePrincipalName).Id
+$servicePrincipalApplicationID  = "<ServicePrincipalName.Id>"
 $servicePrincipalPassword = "<AccessKey>"
 
 $path ="C:\AzFilesHybrid"
