@@ -74,7 +74,8 @@ $storageKeyPrem = (Get-AzstorageAccountKey -ResourceGroupName $ResourceGroup -Na
 Invoke-Expression -Command "cmdkey /add:$StorageAccountStd.file.core.windows.net /user:AZURE\$StorageAccountStd /pass:$storageKeyStd"
 Invoke-Expression -Command "cmdkey /add:$StorageAccountPrem.file.core.windows.net /user:AZURE\$StorageAccountPrem /pass:$storageKeyPrem"
 
-#From here adjust the NTFS rights manually
+# From here adjust the NTFS rights manually
+# Attach all drives with AZURE\storageaccountname with key otherwise SYSTEM will not be owner when configuring permissions
 #$storageKeyStd
 #$storageKeyPrem
 #New-PSDrive -Name M -PSProvider FileSystem -Root "\\ucorpwvdstd.file.core.windows.net\msixappattach"
