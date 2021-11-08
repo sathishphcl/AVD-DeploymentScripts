@@ -120,3 +120,5 @@ reg load $DefaultHKEY $DefaultRegPath
 reg import "$lp_root_folder\nl-nl-default.reg"
 reg unload $DefaultHKEY
 reg import "$lp_root_folder\nl-nl-welkom.reg"
+
+Set-TimeZone -Id "W. Europe Standard Time"
