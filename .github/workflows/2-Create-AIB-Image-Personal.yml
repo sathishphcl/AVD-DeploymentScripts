@@ -27,7 +27,7 @@ jobs:
           $ApiVersion = "2020-02-14"
           $Publisher = "MicrosoftWindowsDesktop"
           $Offer = "Windows-10"
-          $Sku = "20h2-ent"
+          $Sku = "21h1-ent"
           $Version = "latest"
           $Sig = "ucorpavdsig" 
           $SigImageDefName = "Ucorp-AVD-Personal-Image"
