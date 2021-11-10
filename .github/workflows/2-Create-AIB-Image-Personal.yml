@@ -25,17 +25,17 @@ jobs:
           $Tags = @{"Environment"="PRD"}
           $ResourceGroup = "Ucorp-AVD-RG"
           $ApiVersion = "2020-02-14"
-          $Publisher = "MicrosoftWindowsDesktop"
+          $Publisher = "microsoftwindowsdesktop"
           $Offer = "Windows-10"
-          $Sku = "21h1-ent"
+          $Sku = "20h2-ent"
           $Version = "latest"
           $Sig = "ucorpavdsig" 
           $SigImageDefName = "Ucorp-AVD-Personal-Image"
           $ManagedIdenityName = "ucorp-aib-mi"
           $Date = Get-Date -format "yyyyMMdd"
           $imageTemplateName = "W10-PERSONAL-$($Date)"
-          $BaselineLanguage = "https://raw.githubusercontent.com/iuenk/AVD/main/AIB/Ucorp-Personal-Baseline-Language.ps1"
-          $BaselineConfiguration = "https://raw.githubusercontent.com/iuenk/AVD/main/AIB/Ucorp-Personal-Baseline-Configuration.ps1"
+          #$BaselineLanguage = "https://raw.githubusercontent.com/iuenk/AVD/main/AIB/Ucorp-Personal-Baseline-Language.ps1"
+          #$BaselineConfiguration = "https://raw.githubusercontent.com/iuenk/AVD/main/AIB/Ucorp-Personal-Baseline-Configuration.ps1"
           $galleryImageId = "/subscriptions/${{secrets.AZURE_SUBSCRIPTIONID}}/resourceGroups/$ResourceGroup/providers/Microsoft.Compute/galleries/$Sig/images/$SigImageDefName"
           $imgBuilderId = "/subscriptions/${{secrets.AZURE_SUBSCRIPTIONID}}/resourcegroups/$ResourceGroup/providers/Microsoft.ManagedIdentity/userAssignedIdentities/$ManagedIdenityName"
 
@@ -49,10 +49,10 @@ jobs:
           }
         
           # Temp location for the ARM template that will be used by this script (discarded when runbook is finished)
-          $jsonARMTemplateFile = [string]($env:TEMP + "\2-ARM-Create-AVD-Image.json")
+          $jsonARMTemplateFile = [string]($env:TEMP + "\2-ARM-Create-AVD-Image-Test.json")
                 
           # storage location for custom ARM template
-          $templateUrl="https://raw.githubusercontent.com/iuenk/AVD/main/ARMTemplates/2-ARM-Create-AVD-Image.json"
+          $templateUrl="https://raw.githubusercontent.com/iuenk/AVD/main/ARMTemplates/2-ARM-Create-AVD-Image-Test.json"
 
           # Retrieve the template file and save it in a temp file location
           Invoke-WebRequest -Uri $templateUrl -OutFile $jsonARMTemplateFile -UseBasicParsing
@@ -64,8 +64,8 @@ jobs:
           ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<runOutputName>',$AIBImageVersion) | Set-Content -Path $jsonARMTemplateFile
           ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<galleryImageId>',$galleryImageId) | Set-Content -Path $jsonARMTemplateFile
           ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<imgBuilderId>',$imgBuilderId) | Set-Content -Path $jsonARMTemplateFile
-          ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<BaselineLanguage>',$BaselineLanguage) | Set-Content -Path $jsonARMTemplateFile
-          ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<BaselineConfiguration>',$BaselineConfiguration) | Set-Content -Path $jsonARMTemplateFile
+          #((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<BaselineLanguage>',$BaselineLanguage) | Set-Content -Path $jsonARMTemplateFile
+          #((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<BaselineConfiguration>',$BaselineConfiguration) | Set-Content -Path $jsonARMTemplateFile
 
           ## Create a Template Parameter Object (hashtable)
           $objTemplateParameter = @{
