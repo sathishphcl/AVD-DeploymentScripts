@@ -76,7 +76,7 @@
                     },
                     {
                         "type": "WindowsRestart",
-                        "restartCheckCommand": "write-host 'Restarting for language configuration'",
+                        "restartCheckCommand": "write-host 'Restarting for Baseline configuration'",
                         "restartTimeout": "5m"
                     },
                         

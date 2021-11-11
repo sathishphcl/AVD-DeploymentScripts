@@ -27,7 +27,7 @@ jobs:
           $ApiVersion = "2020-02-14"
           $Publisher = "Microsoftwindowsdesktop"
           $Offer = "windows-10"
-          $Sku = "20h1-ent"
+          $Sku = "20h2-ent"
           $Version = "latest"
           $Sig = "ucorpavdtest" 
           $SigImageDefName = "Ucorp-AVD-Personal-Image"
@@ -49,10 +49,10 @@ jobs:
           }
         
           # Temp location for the ARM template that will be used by this script (discarded when runbook is finished)
-          $jsonARMTemplateFile = [string]($env:TEMP + "\2-ARM-Create-AVD-Image-Test.json")
+          $jsonARMTemplateFile = [string]($env:TEMP + "\2-ARM-Create-AVD-Image-Personal.json")
                 
           # storage location for custom ARM template
-          $templateUrl="https://raw.githubusercontent.com/iuenk/AVD/main/ARMTemplates/2-ARM-Create-AVD-Image-Test.json"
+          $templateUrl="https://raw.githubusercontent.com/iuenk/AVD/main/ARMTemplates/2-ARM-Create-AVD-Image-Personal.json"
 
           # Retrieve the template file and save it in a temp file location
           Invoke-WebRequest -Uri $templateUrl -OutFile $jsonARMTemplateFile -UseBasicParsing
