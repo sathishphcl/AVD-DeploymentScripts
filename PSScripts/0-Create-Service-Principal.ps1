@@ -7,6 +7,7 @@ $subscriptionID = "<subscriptionId>"
 Connect-AzAccount -TenantId $tenantID -SubscriptionId $subscriptionID
           
 # Create Service Principal and get credentials
+##### WARNING secret ID only with Graph API not working anymore with PS #####
 $sp = New-AzADServicePrincipal -DisplayName "$CustomerPrefix-avd-sp"
 $clientsec = [System.Net.NetworkCredential]::new("", $sp.Secret).Password
 $tenantID = (get-aztenant).Id
