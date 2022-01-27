@@ -30,32 +30,22 @@ Import-Module 'PnP.PowerShell'
 Import-Module 'MicrosoftTeams'
 
 # Variables
-#$creds = Get-AutomationPSCredential -Name "ucorp-mail-user"
 $Tenant = "ucorponline"
-$TenantName = "ucorponline.onmicrosoft.com"
+$ErrorActionPreference = 'SilentlyContinue'       
 
-# Get the service principal connection details
-$spConnection = Get-AutomationConnection -Name AzureRunAsConnection
+# Get the credential from Automation  
+$credential = Get-AutomationPSCredential -Name 'AutomationCreds'  
+$userName = $credential.UserName  
+$securePassword = $credential.Password
 
-# Connect to ExchangeOnline
-Connect-ExchangeOnline -CertificateThumbprint $spConnection.CertificateThumbprint -AppId $spConnection.ApplicationID -Organization $tenantName
+$psCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword  
 
-
-
-# Connect to Azure with the System Managed Identity
-#Connect-SPOService -Url "https://$($Tenant)-admin.sharepoint.com" -Identity
-
-# Mail configuration
-#$mailConfig = @{
-#    SMTPServer = "smtp.office365.com"
-#    SMTPPort = "587"
-#    Sender = "automation@ucorp.nl"
-#    Recipients = @("mail@udirection.com", "mail@ivouenk.nl")
-#    Header = "SharePoint-Teams report"
-#}
+# Connect to Microsoft 365 Services
+Connect-SPOService -Url "https://$($Tenant)-admin.sharepoint.com" -Credential $psCredential
+Connect-ExchangeOnline -Credential $psCredential
+Connect-MicrosoftTeams -Credential $psCredential
 
 $groups = Get-EXORecipient -RecipientTypeDetails GroupMailbox -Properties WhenCreated
-Write-Output "Found" $groups.Count "Groups, Getting search team by group..."
 
 $table = $null
 $Table = New-Object System.Collections.ArrayList
@@ -81,7 +71,7 @@ foreach($group in $groups){
 
         # Get SPO files
         $Site = "https://$($Tenant).sharepoint.com/sites/" + $group.Alias
-        Connect-PnPOnline -Url $Site -Identity
+        Connect-PnPOnline -Url $Site -Credential $psCredential
 
         #Store in variable all the document libraries in the site
         $DocLibrary = Get-PnPList -Identity "Documents"
@@ -100,10 +90,9 @@ foreach($group in $groups){
                 }
             }
         }
-
         Add-Member -InputObject $Line -MemberType NoteProperty -Name "Files" -Value $files.Count
 
-        # Get Teams instellingen
+        # Get Teams settings
         $Team = (Get-Team -DisplayName $group.Alias)
         $TeamOwner = (Get-TeamUser -GroupId $Team.GroupId | Where-Object{$_.Role -eq 'Owner'}).User -join ","
         $TeamUserCount = ((Get-TeamUser -GroupId $Team.GroupId).UserID).Count
@@ -120,7 +109,40 @@ foreach($group in $groups){
         Add-Member -InputObject $Line -MemberType NoteProperty -Name "Channels" -Value $ChannelCount
 
         [void]$Table.Add($Line)
-        }
     }
+}
 
-    $Table
+# Get Date
+$ReportDate = (Get-Date).ToString("dd-MM-yyyy")
+
+# HTML Template
+$Header = @"
+<style>
+TABLE {border-width: 1px; border-style: solid; border-color: black; border-collapse: collapse;}
+TH {border-width: 1px; padding: 3px; border-style: solid; border-color: White; background-color: #154273;}
+TD {border-width: 1px; padding: 3px; border-style: solid; border-color: black;}
+</style>
+"@
+
+$EmailBody = $Table | ConvertTo-Html -Body "<H2>SharePoint Teams Report $($ReportDate)</H2>" -Head $Header
+
+# Mail configuration
+$mailConfig = @{
+    SMTPServer = "smtp.office365.com"
+    SMTPPort = "587"
+    Sender = "automation@ucorp.nl"
+    Recipients = @("mail@ivouenk.nl")
+    Header = "SharePoint-Teams report on: "+$ReportDate
+}
+
+Send-MailMessage -UseSsl -From $MailConfig.Sender `
+-To $MailConfig.Recipients `
+-SmtpServer $MailConfig.Smtpserver `
+-Port $MailConfig.SMTPPort `
+-Subject $MailConfig.Header `
+-Body ($EmailBody | Out-String) -BodyAsHtml -Credential $psCredential
+
+Disconnect-ExchangeOnline
+Disconnect-SPOService
+Disconnect-MicrosoftTeams
+Disconnect-PnPOnline  
