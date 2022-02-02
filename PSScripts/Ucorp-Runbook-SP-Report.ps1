@@ -31,14 +31,18 @@ Import-Module 'MicrosoftTeams'
 
 # Variables
 $Tenant = "ucorponline"
-$ErrorActionPreference = 'SilentlyContinue'       
+$AppId = "<AppId>"
+$AppSecret = Get-AutomationVariable -Name 'AppSecret'
+$TenantId = "<TenantId>"
+#$ErrorActionPreference = 'SilentlyContinue'
 
 # Get the credential from Automation  
 $credential = Get-AutomationPSCredential -Name 'AutomationCreds'  
 $userName = $credential.UserName  
 $securePassword = $credential.Password
 
-$psCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword  
+$psCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword
+$MsgFrom = "<mailadres>"
 
 # Connect to Microsoft 365 Services
 Connect-SPOService -Url "https://$($Tenant)-admin.sharepoint.com" -Credential $psCredential
@@ -115,7 +119,7 @@ foreach($group in $groups){
 # Get Date
 $ReportDate = (Get-Date).ToString("dd-MM-yyyy")
 
-# HTML Template
+# HTML Template format
 $Header = @"
 <style>
 TABLE {border-width: 1px; border-style: solid; border-color: black; border-collapse: collapse;}
@@ -125,24 +129,64 @@ TD {border-width: 1px; padding: 3px; border-style: solid; border-color: black;}
 "@
 
 $EmailBody = $Table | ConvertTo-Html -Body "<H2>SharePoint Teams Report $($ReportDate)</H2>" -Head $Header
+$htmlbody = ($EmailBody | Out-String)
 
-# Mail configuration
-$mailConfig = @{
-    SMTPServer = "smtp.office365.com"
-    SMTPPort = "587"
-    Sender = "automation@ucorp.nl"
-    Recipients = @("mail@ivouenk.nl")
-    Header = "SharePoint-Teams report on: "+$ReportDate
+# Characters needs to be removed otherwise no valid HTML format error 400 while sending with Graph API
+$htmlbody = $htmlbody -replace '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">',''
+$htmlbody = $htmlbody -replace '</html>',''
+
+#Connect to Graph API
+$tokenBody = @{
+    Grant_Type    = "client_credentials"
+    Scope         = "https://graph.microsoft.com/.default"
+    Client_Id     = $AppID
+    Client_Secret = $AppSecret
+}
+$tokenResponse = Invoke-RestMethod -Uri "https://login.microsoftonline.com/$tenantID/oauth2/v2.0/token" -Method POST -Body $tokenBody
+$headers = @{
+    "Authorization" = "Bearer $($tokenResponse.access_token)"
+    "Content-type"  = "application/json"
 }
 
-Send-MailMessage -UseSsl -From $MailConfig.Sender `
--To $MailConfig.Recipients `
--SmtpServer $MailConfig.Smtpserver `
--Port $MailConfig.SMTPPort `
--Subject $MailConfig.Header `
--Body ($EmailBody | Out-String) -BodyAsHtml -Credential $psCredential
+#Send Mail    
+$URLsend = "https://graph.microsoft.com/v1.0/users/$MsgFrom/sendMail"
+
+# Users can also be retrieved from groupmembership
+$Users = @("mail@ivouenk.nl","ivouenk@outlook.com")
+
+ForEach ($User in $Users) {
+    #Write-Host "Sending welcome email to" $User.DisplayName
+    #$EmailRecipient = $User.PrimarySmtpAddress
+    Write-Host "Sending report to" $user
+    $MsgSubject = "SharePoint-Teams report on: "+$ReportDate
+
+    $BodyJson = @"
+                    {
+                        "message": {
+                          "subject": "$MsgSubject",
+                          "body": {
+                            "contentType": "HTML",
+                            "content": "$htmlbody"
+                          },
+                          
+                          "toRecipients": [
+                            {
+                              "emailAddress": {
+                                "address": "$User"
+                              }
+                            }
+                          ]
+                          ,"attachments": []
+                        },
+                        "saveToSentItems": "false"
+                      }
+"@
+
+Invoke-RestMethod -Method POST -Uri $URLsend -Headers $headers -Body $BodyJson
+}
 
 Disconnect-ExchangeOnline
 Disconnect-SPOService
 Disconnect-MicrosoftTeams
-Disconnect-PnPOnline  
+Disconnect-PnPOnline
