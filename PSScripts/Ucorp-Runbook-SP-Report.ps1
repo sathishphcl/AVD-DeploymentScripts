@@ -34,6 +34,7 @@ $Tenant = "ucorponline"
 $AppId = "<AppId>"
 $AppSecret = Get-AutomationVariable -Name 'AppSecret'
 $TenantId = "<TenantId>"
+$MsgFrom = Get-AutomationVariable -Name 'MsgFrom'
 #$ErrorActionPreference = 'SilentlyContinue'
 
 # Get the credential from Automation  
@@ -42,7 +43,6 @@ $userName = $credential.UserName
 $securePassword = $credential.Password
 
 $psCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword
-$MsgFrom = "<mailadres>"
 
 # Connect to Microsoft 365 Services
 Connect-SPOService -Url "https://$($Tenant)-admin.sharepoint.com" -Credential $psCredential
