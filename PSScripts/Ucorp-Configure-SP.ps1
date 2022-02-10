@@ -14,3 +14,33 @@ $params = @{
 }
 
 New-ApplicationAccessPolicy @params
+
+# Set read permissions for reporting account in SharePoint
+$Creds = Get-Credential
+
+# Parameters
+$UserAccount = "<UserAccount>"
+$PermissionLevel = "Reader"
+$ListName ="Documents"
+ 
+# Connect to PnP Online
+Connect-ExchangeOnline  -Credential $Creds
+Connect-MicrosoftTeams  -Credential $Creds
+
+$groups = Get-EXORecipient -RecipientTypeDetails GroupMailbox -Properties WhenCreated
+
+foreach($group in $groups){
+    if(Get-Team -MailNickName $group.Alias){
+        $Site = "https://dictu.sharepoint.com/sites/" + $group.Alias
+        Connect-PnPOnline -Url $Site -Credentials $Creds
+
+        # Permissions on site level
+        Set-PnPWebPermission -User $UserAccount -AddRole $PermissionLevel
+
+        # Break Permission Inheritance of the List
+        Set-PnPList -Identity $ListName -BreakRoleInheritance -CopyRoleAssignments
+ 
+        # Grant permission on List to User
+        Set-PnPListPermission -Identity $ListName -AddRole "Read" -User $UserAccount
+    }
+}
