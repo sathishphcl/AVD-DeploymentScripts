@@ -7,7 +7,7 @@ env:
 jobs:
   build:
     name: 2-Create-AIB-Image
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
     # Authentication: log on to Azure with the AZURE_AVD_SP secret
     - name: Login via Az module
