@@ -27,7 +27,7 @@ jobs:
           $ApiVersion = "2020-02-14"
           $Publisher = "MicrosoftWindowsDesktop"
           $Offer = "office-365"
-          $Sku = "21h1-evd-o365pp"
+          $Sku = "win10-21h2-avd-m365" # 21h1-evd-o365pp
           $Version = "latest"
           $Sig = "ucorpavdsig" 
           $SigImageDefName = "Ucorp-AVD-Image"
