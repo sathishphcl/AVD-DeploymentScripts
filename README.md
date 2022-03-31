@@ -2,4 +2,4 @@ I'm Ivo Uenk and working as a freelance Microsoft IT trainer since 2018. Besides
 
 My interests are mobile workspaces, device- and application solutions (MDM/ MAM), Azure Virtual Desktop, Microsoft Endpoint Manager and automation.
 
-This repo contains scripts used for deploying Azure Virtual Desktop. Feel free to look around and use what you need.
+This repo contains scripts used to automate the deployment of Azure Virtual Desktop with ARM and PowerShell. Feel free to look around and use what you need.
