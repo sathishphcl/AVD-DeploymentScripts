@@ -4,7 +4,7 @@ on: workflow_dispatch
 jobs:
   build:
     name: 5-Create-AVD-Session-Host
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
     # Authentication: log on to Azure with the AZURE_AVD_SP secret
     - name: Login via Az module
