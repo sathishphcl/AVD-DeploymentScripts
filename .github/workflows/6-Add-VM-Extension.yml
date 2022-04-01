@@ -23,12 +23,7 @@ jobs:
           $CustomerPrefix = "Ucorp"
           $HostPoolName = "$CustomerPrefix-Standard-Pool"
           $ResourceGroup = "$CustomerPrefix-Logging-RG"
-          $WorkspaceName = "$CustomerPrefix-AVD-LAW"
           $VaultName = "$CustomerPrefix-AVD-KV"
-          $WorkspaceId = (Get-AzOperationalInsightsWorkspace -ResourceGroupName $ResourceGroup -Name $WorkspaceName).CustomerId
-          $PublicSettings = @{"workspaceId" = $workspaceId}
-          $key = (Get-AzOperationalInsightsWorkspaceSharedKey -ResourceGroupName $ResourceGroup -Name $WorkspaceName).PrimarySharedKey
-          $ProtectedSettings = @{"workspaceKey" = $key}
           $FileUri = @("https://raw.githubusercontent.com/iuenk/AVD/main/PSScripts/Virtual-Desktop-Optimalization-Tool-20H2.ps1")
           $Settings = @{"fileUris" = $FileUri};
           $OptimalizationPack = @{"commandToExecute" = "powershell -ExecutionPolicy Unrestricted -File Virtual-Desktop-Optimalization-Tool-20H2.ps1"};
@@ -46,8 +41,7 @@ jobs:
           $Date = Get-Date -Format "dd/MM/yyyy"
           $VMObject = Get-AzVM -ResourceGroupName $hostpoolRG
 
-          foreach ($VM in $VMObject)
-          {
+          foreach ($VM in $VMObject){
             $VMDiskName = $VM.StorageProfile.OsDisk.Name
             $VMDiskInfo = Get-AzDisk -ResourceGroupName $VM.ResourceGroupName -DiskName $VMDiskName
             $VMCreatedDate = $VMDiskInfo.TimeCreated
@@ -62,83 +56,43 @@ jobs:
                 SessionHost = $SessionHost
             }
 
-            If($Date -eq $VMCreatedDate)
-            {
+            If($Date -eq $VMCreatedDate){
               Write-Output "$($VM.VMName) is created today start installing extensions" 
 
               # Check VM status if not running start it wait till its running and next install VM extensions
-              ForEach($VM in $VMs)
-              {
+              ForEach($VM in $VMs){
                 $provisioningState = ""
                 $condition = ($provisioningState -eq "PowerState/running")
+                
                 while (!$condition){
-                if ($lastProvisioningState -ne $provisioningState)
-                {
-                  Write-Output "$($VM.VMName) under $hostpoolRG is $provisioningState (waiting for state change)"
-                  Start-AzVM -ResourceGroupName $hostpoolRG -Name $VM.VMName 
+                  if ($lastProvisioningState -ne $provisioningState){
+                    Write-Output "$($VM.VMName) under $hostpoolRG is $provisioningState (waiting for state change)"
+                    Start-AzVM -ResourceGroupName $hostpoolRG -Name $VM.VMName 
+                  }
+
+                  $lastProvisioningState = $provisioningState
+                  Start-Sleep -Seconds 5
+                  $provisioningState = (Get-AzVM -Resourcegroupname $hostpoolRG -Name $VM.VMName -Status).Statuses[1].Code
+                  $condition = ($provisioningState -eq "PowerState/running")       
                 }
+                Write-Output "$($VM.VMName) under $hostpoolRG is $provisioningState"
 
-                $lastProvisioningState = $provisioningState
-                Start-Sleep -Seconds 5
-                $provisioningState = (Get-AzVM -Resourcegroupname $hostpoolRG -Name $VM.VMName -Status).Statuses[1].Code
-                $condition = ($provisioningState -eq "PowerState/running")       
-              }
-              Write-Output "$($VM.VMName) under $hostpoolRG is $provisioningState"
-
-              # Install Microsoft Monitoring Agent
-              $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM.VMName -Name "MicrosoftMonitoringAgent" -ErrorAction SilentlyContinue
-              if (-not $extensions)
-              {
-                Write-Output "Installing MicrosoftMonitoringAgent on $($VM.VMName)"
-                $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM.VMName -Name "MicrosoftMonitoringAgent" -Publisher "Microsoft.EnterpriseCloud.Monitoring" -Type "MicrosoftMonitoringAgent" -TypeHandlerVersion "1.0" -Settings $PublicSettings -ProtectedSettings $ProtectedSettings          
-              }
-              Else
-              {
-                Write-Output "Skipping MicrosoftMonitoringAgent already installed on $($VM.VMName)"
+                # Install Optimalization Pack
+                $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM.VMName -Name "OptimalizationPack" -ErrorAction SilentlyContinue
+                if (-not $extensions){
+                  Write-Output "Installing OptimalizationPack on $($VM.VMName)"
+                  $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM.VMName -Name "OptimalizationPack" -Publisher "Microsoft.Compute" -Type "CustomScriptExtension" -TypeHandlerVersion "1.10" -Settings $Settings -ProtectedSettings $OptimalizationPack
+                }
+                else{
+                  Write-Output "Skipping OptimalizationPack already installed on $($VM.VMName)"
+                }
+                
+                Restart-AzVM -ResourceGroupName $hostpoolRG -Name $VM.VMName
               }
 
-              # Install Azure Monitoring Windows Agent
-              $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM.VMName -Name "AzureMonitorWindowsAgent" -ErrorAction SilentlyContinue
-              if (-not $extensions)
-              {
-                Write-Output "Installing AzureMonitorWindowsAgent on $($VM.VMName)"
-                $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM.VMName -Name "AzureMonitorWindowsAgent" -Publisher "Microsoft.Azure.Monitor" -Type "AzureMonitorWindowsAgent" -TypeHandlerVersion "1.0" -Settings $PublicSettings -ProtectedSettings $ProtectedSettings
+              else {
+                Write-Output "Skip $($VM.VMName) creation date is not today"
               }
-              Else
-              {
-                Write-Output "Skipping AzureMonitorWindowsAgent already installed on $($VM.VMName)"
-              }
-
-              # Install Dependency Windows Agent
-              $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM.VMName -Name "DependencyAgentWindows" -ErrorAction SilentlyContinue
-              if (-not $extensions)
-              {
-                Write-Output "Installing DependencyAgentWindows on $($VM.VMName)"
-                $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM.VMName -Name "DependencyAgentWindows" -Publisher "Microsoft.Azure.Monitoring.DependencyAgent" -Type "DependencyAgentWindows" -TypeHandlerVersion "9.10" -Settings $PublicSettings -ProtectedSettings $ProtectedSettings
-              }
-              Else
-              {
-                Write-Output "Skipping DependencyAgentWindows already installed on $($VM.VMName)"
-              }
-
-              # Install Optimalization Pack
-              $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM.VMName -Name "OptimalizationPack" -ErrorAction SilentlyContinue
-              if (-not $extensions)
-              {
-                Write-Output "Installing OptimalizationPack on $($VM.VMName)"
-                $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM.VMName -Name "OptimalizationPack" -Publisher "Microsoft.Compute" -Type "CustomScriptExtension" -TypeHandlerVersion "1.10" -Settings $Settings -ProtectedSettings $OptimalizationPack
-              }
-              else
-              {
-                Write-Output "Skipping OptimalizationPack already installed on $($VM.VMName)"
-              }
-              Restart-AzVM -ResourceGroupName $hostpoolRG -Name $VM.VMName
-            }
-
-            else 
-            {
-              Write-Output "Skip $($VM.VMName) creation date is not today"
-            }
             }
           }
 
