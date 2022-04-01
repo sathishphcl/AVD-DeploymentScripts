@@ -41,7 +41,7 @@ jobs:
           $hostpoolRG = $hostPool.Id.Split("/")[4]
           $hostpoolName = $hostPool.Id.Split("/")[-1]
 
-          $logs = Get-AzLog -ResourceProvider Microsoft.Compute -StartTime (Get-Date).adddays(-12)
+          $logs = Get-AzLog -ResourceProvider Microsoft.Compute -StartTime (Get-Date).date
           $VMs = @()
           foreach($log in $logs)
           {
