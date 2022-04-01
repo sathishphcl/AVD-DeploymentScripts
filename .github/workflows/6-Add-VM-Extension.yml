@@ -64,7 +64,7 @@ jobs:
 
             If($Date -eq $VMCreatedDate)
             {
-              Write-Output "$($VM.VMName) is created today start installing extensions 
+              Write-Output "$($VM.VMName) is created today start installing extensions" 
 
               # Check VM status if not running start it wait till its running and next install VM extensions
               ForEach($VM in $VMs)
@@ -98,11 +98,11 @@ jobs:
               }
 
               # Install Azure Monitoring Windows Agent
-              $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM -Name "AzureMonitorWindowsAgent" -ErrorAction SilentlyContinue
+              $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM.VMName -Name "AzureMonitorWindowsAgent" -ErrorAction SilentlyContinue
               if (-not $extensions)
               {
                 Write-Output "Installing AzureMonitorWindowsAgent on $($VM.VMName)"
-                $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM -Name "AzureMonitorWindowsAgent" -Publisher "Microsoft.Azure.Monitor" -Type "AzureMonitorWindowsAgent" -TypeHandlerVersion "1.0" -Settings $PublicSettings -ProtectedSettings $ProtectedSettings
+                $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM.VMName -Name "AzureMonitorWindowsAgent" -Publisher "Microsoft.Azure.Monitor" -Type "AzureMonitorWindowsAgent" -TypeHandlerVersion "1.0" -Settings $PublicSettings -ProtectedSettings $ProtectedSettings
               }
               Else
               {
@@ -110,11 +110,11 @@ jobs:
               }
 
               # Install Dependency Windows Agent
-              $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM -Name "DependencyAgentWindows" -ErrorAction SilentlyContinue
+              $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM.VMName -Name "DependencyAgentWindows" -ErrorAction SilentlyContinue
               if (-not $extensions)
               {
                 Write-Output "Installing DependencyAgentWindows on $($VM.VMName)"
-                $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM -Name "DependencyAgentWindows" -Publisher "Microsoft.Azure.Monitoring.DependencyAgent" -Type "DependencyAgentWindows" -TypeHandlerVersion "9.10" -Settings $PublicSettings -ProtectedSettings $ProtectedSettings
+                $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM.VMName -Name "DependencyAgentWindows" -Publisher "Microsoft.Azure.Monitoring.DependencyAgent" -Type "DependencyAgentWindows" -TypeHandlerVersion "9.10" -Settings $PublicSettings -ProtectedSettings $ProtectedSettings
               }
               Else
               {
@@ -122,11 +122,11 @@ jobs:
               }
 
               # Install Optimalization Pack
-              $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM -Name "OptimalizationPack" -ErrorAction SilentlyContinue
+              $extensions = Get-AzVMExtension -ResourceGroupName $hostpoolRG -VMName $VM.VMName -Name "OptimalizationPack" -ErrorAction SilentlyContinue
               if (-not $extensions)
               {
                 Write-Output "Installing OptimalizationPack on $($VM.VMName)"
-                $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM -Name "OptimalizationPack" -Publisher "Microsoft.Compute" -Type "CustomScriptExtension" -TypeHandlerVersion "1.10" -Settings $Settings -ProtectedSettings $OptimalizationPack
+                $result = Set-AzVMExtension -ResourceGroupName $hostpoolRG -Location "westeurope" -VMName $VM.VMName -Name "OptimalizationPack" -Publisher "Microsoft.Compute" -Type "CustomScriptExtension" -TypeHandlerVersion "1.10" -Settings $Settings -ProtectedSettings $OptimalizationPack
               }
               else
               {
@@ -137,7 +137,7 @@ jobs:
 
             else 
             {
-              Write-Output "Skip $($VM.Name) creation date is not today"
+              Write-Output "Skip $($VM.VMName) creation date is not today"
             }
           }
 
