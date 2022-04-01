@@ -139,6 +139,7 @@ jobs:
             {
               Write-Output "Skip $($VM.VMName) creation date is not today"
             }
+            }
           }
 
         azPSVersion: 'latest'
