@@ -47,7 +47,7 @@ jobs:
             $VMCreatedDate = $VMDiskInfo.TimeCreated
             $VMCreatedDate = $VMCreatedDate.Date.ToString("dd/MM/yyyy")
             $SessionHost = $VM.Name+".$DomainName"
-        
+                
             # Add result to the output array
             $VMs += New-Object -TypeName psobject -Property @{
                 ResourceGroup = $VM.ResourceGroupName
@@ -57,9 +57,10 @@ jobs:
             }
 
             If($Date -eq $VMCreatedDate){
-              Write-Output "$($VM.VMName) is created today start installing extensions" 
+                Write-Output "$($VM.VMName) is created today start installing extensions"
+            } 
             else {
-              Write-Output "$($VM.VMName) is not created today"
+                Write-Output "$($VM.VMName) is not created today"
             }
           }
 
