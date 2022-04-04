@@ -99,8 +99,6 @@ jobs:
 
                 # Restart is needed to process configuration
                 Restart-AzVM -ResourceGroupName $hostpoolRG -Name $VM.VMName
-
-                }
             } 
 
         azPSVersion: 'latest'
