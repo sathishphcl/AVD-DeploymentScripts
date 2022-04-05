@@ -56,10 +56,10 @@ Invoke-Expression -command 'C:\AIB\OfficeSetup.exe /configure C:\AIB\OfficeConfi
 Start-Sleep -Seconds 600
 
 # Set Wallpaper
-#Write-Log -LogOutput ("Set Wallpaper") -Path $LogFile
-#$WallpaperUrl = 'https://github.com/iuenk/AVD/raw/main/AIB/Ucorp-Wallpaper.jpg'
-#$WallpaperLocation = 'C:\Windows\Web\Wallpaper\Ucorp-Wallpaper.jpg'
-#Invoke-WebRequest -Uri $WallpaperUrl -OutFile $WallpaperLocation
+Write-Log -LogOutput ("Set Wallpaper") -Path $LogFile
+$WallpaperUrl = 'https://github.com/iuenk/AVD/raw/main/AIB/Ucorp-Wallpaper.jpg'
+$WallpaperLocation = 'C:\Windows\Web\Wallpaper\Ucorp-Wallpaper.jpg'
+Invoke-WebRequest -Uri $WallpaperUrl -OutFile $WallpaperLocation
 
 # Add MSIX app attach certificate
 Write-Log -LogOutput ("Set MSIX app attach certificate") -Path $LogFile
