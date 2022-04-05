@@ -64,8 +64,8 @@ jobs:
             {
                 Write-Output "$($VM.VMName) is created today start installing extensions"
                 
-                Update-AzWvdSessionHost -ResourceGroupName $hostpoolRG -HostPoolName $HostPoolName -Name $SessionHost -AllowNewSession:$false
-                Write-Output "session host $SessionHost in maintenance now"
+                Update-AzWvdSessionHost -ResourceGroupName $hostpoolRG -HostPoolName $HostPoolName -Name $VM.SessionHost -AllowNewSession:$false
+                Write-Output "session host $($VM.VMName) in maintenance now"
 
                 $provisioningState = ""
                 $condition = ($provisioningState -eq "PowerState/running")
