@@ -1,4 +1,4 @@
-$Context = New-AzStorageContext -StorageAccountName "ucorpwvdprem" -StorageAccountKey "<StorageAccountKey>"
+$Context = New-AzStorageContext -StorageAccountName "ucorpavdprem" -StorageAccountKey "<StorageAccountKey>"
 Get-AzStorageFileHandle -Context $Context -ShareName "fslogixoffice" -Recursive
 Close-AzStorageFileHandle -Context $Context -ShareName "fslogixoffice" -CloseAll
 
