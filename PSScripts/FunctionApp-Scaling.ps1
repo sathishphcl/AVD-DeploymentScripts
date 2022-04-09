@@ -217,7 +217,7 @@ if($dateDay -eq $PatchDay -and $date.Hour -in $PatchHours){
         {                          
           $VMs += $hostPool.Name + "/" + $SessionHost
         }
-     }
+    }
 
     start-sleep 5
 
