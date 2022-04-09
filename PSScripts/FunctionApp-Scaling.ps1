@@ -11,7 +11,7 @@ param($Timer)
 .SYNOPSIS
   Scaling session hosts based on available sessions. Will skip scaling during patching.
 .DESCRIPTION
-    Requirements:
+   Requirements:
     AVD Host Pool must be set to Depth First
     An Azure Function App
         Use System Assigned Managed ID
@@ -50,19 +50,19 @@ param($Timer)
 
 ######## Variables ##########
 $VerbosePreference = "Continue"
-$serverStartThreshold = 2
+$serverStartThreshold = 0
 
 $usePeak = "yes"
-$peakServerStartThreshold = 4
+$peakServerStartThreshold = 1
 $startPeakTime = '08:00:00'
 $endPeakTime = '18:00:00'
 $timeZone = "W. Europe Standard Time"
 $peakDay = 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'
 
-$hostPoolName = 'GSV-DEFAULT-POOL'
-$hostPoolRg = 'GSV-WVD'
-$sessionHostVmRg= 'GSV-WVD'
-$domainName = 'intern.stichtsevecht.nl'
+$hostPoolName = 'Ucorp-Standard-Pool'
+$hostPoolRg = 'Ucorp-AVD-RG'
+$sessionHostVmRg= 'Ucorp-AVD-RG'
+$domainName = 'ucorp.local'
 
 $PatchDay = "Thursday"
 $PatchHours = @(20,21,22)
@@ -201,21 +201,28 @@ if($dateDay -eq $PatchDay -and $date.Hour -in $PatchHours){
 
     # Find the total number of session hosts
     # Exclude servers in drain mode or created today and do not allow new connections
-    $logs = Get-AzLog -ResourceProvider Microsoft.Compute -StartTime (Get-Date).Date
-    $VMs = @()
-      foreach($log in $logs)
-      {
-        if(($log.OperationName.Value -eq 'Microsoft.Compute/virtualMachines/write') -and ($log.SubStatus.Value -eq 'Created'))
-        {
-        Write-Output "- Found VM creation at $($log.EventTimestamp) for VM $($log.Id.split("/")[8]) in Resource Group $($log.ResourceGroupName) found in Azure logs"
-        $VMs += $hostPool.Name + "/" + $($log.Id.split("/")[8]) +".$DomainName"
-      }
-    }
+    $VMs = @()        
+    $Date = Get-Date -Format "dd/MM/yyyy"
+    $VMObject = Get-AzVM -ResourceGroupName $hostPoolRg
+
+    foreach ($VM in $VMObject)
+    {
+        $VMDiskName = $VM.StorageProfile.OsDisk.Name
+        $VMDiskInfo = Get-AzDisk -ResourceGroupName $VM.ResourceGroupName -DiskName $VMDiskName
+        $VMCreatedDate = $VMDiskInfo.TimeCreated
+        $VMCreatedDate = $VMCreatedDate.Date.ToString("dd/MM/yyyy")
+        $SessionHost = $VM.Name+".$DomainName"
+
+        If($VMCreatedDate -ne $Date)
+        {                          
+          $VMs += $hostPool.Name + "/" + $SessionHost
+        }
+     }
 
     start-sleep 5
 
     try {
-        $sessionHosts = Get-AzWvdSessionHost -ResourceGroupName $hostPoolRg -HostPoolName $hostPoolName | Where-Object { $_.AllowNewSession -eq $true -and $_.Name -notin $VMs }
+        $sessionHosts = Get-AzWvdSessionHost -ResourceGroupName $hostPoolRg -HostPoolName $hostPoolName | Where-Object { $_.AllowNewSession -eq $true -and $_.Name -in $VMs }
         # Get current active user sessions
         $currentSessions = 0
         foreach ($sessionHost in $sessionHosts) {
