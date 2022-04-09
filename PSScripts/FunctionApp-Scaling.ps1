@@ -219,8 +219,6 @@ if($dateDay -eq $PatchDay -and $date.Hour -in $PatchHours){
         }
     }
 
-    start-sleep 5
-
     try {
         $sessionHosts = Get-AzWvdSessionHost -ResourceGroupName $hostPoolRg -HostPoolName $hostPoolName | Where-Object { $_.AllowNewSession -eq $true -and $_.Name -in $VMs }
         # Get current active user sessions
