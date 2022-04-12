@@ -1,0 +1,88 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_USERS\.DEFAULT\Control Panel\International]
+"Locale"="00000413"
+"LocaleName"="nl-NL"
+"s1159"=""
+"s2359"=""
+"sCurrency"="€"
+"sDate"="-"
+"sDecimal"=","
+"sGrouping"="3;0"
+"sLanguage"="NLD"
+"sList"=";"
+"sLongDate"="dddd d MMMM yyyy"
+"sMonDecimalSep"=","
+"sMonGrouping"="3;0"
+"sMonThousandSep"="."
+"sNativeDigits"="0123456789"
+"sNegativeSign"="-"
+"sPositiveSign"=""
+"sShortDate"="d-M-yyyy"
+"sThousand"="."
+"sTime"=":"
+"sTimeFormat"="HH:mm:ss"
+"sShortTime"="HH:mm"
+"sYearMonth"="MMMM yyyy"
+"iCalendarType"="1"
+"iCountry"="31"
+"iCurrDigits"="2"
+"iCurrency"="2"
+"iDate"="1"
+"iDigits"="2"
+"NumShape"="1"
+"iFirstDayOfWeek"="0"
+"iFirstWeekOfYear"="2"
+"iLZero"="1"
+"iMeasure"="0"
+"iNegCurr"="12"
+"iNegNumber"="1"
+"iPaperSize"="9"
+"iTime"="1"
+"iTimePrefix"="0"
+"iTLZero"="1"
+
+[HKEY_USERS\.DEFAULT\Control Panel\International\Geo]
+"Nation"="176"
+"Name"="NL"
+
+[HKEY_USERS\.DEFAULT\Control Panel\International\User Profile]
+"Languages"=hex(7):6e,00,6c,00,2d,00,4e,00,4c,00,00,00,00,00
+"ShowAutoCorrection"=dword:00000000
+"ShowTextPrediction"=dword:00000000
+"ShowCasing"=dword:00000001
+"ShowShiftLock"=dword:00000001
+"WindowsOverride"="nl-NL"
+"InputMethodOverride"="0413:00020409"
+
+[HKEY_USERS\.DEFAULT\Control Panel\International\User Profile\nl-NL]
+"CachedLanguageName"="@Winlangdb.dll,-1545"
+"0413:00020409"=dword:00000001
+
+[HKEY_USERS\.DEFAULT\Control Panel\International\User Profile System Backup]
+"Languages"=hex(7):6e,00,6c,00,2d,00,4e,00,4c,00,00,00,00,00
+"ShowAutoCorrection"=dword:00000000
+"ShowTextPrediction"=dword:00000000
+"ShowCasing"=dword:00000001
+"ShowShiftLock"=dword:00000001
+"WindowsOverride"="nl-NL"
+"InputMethodOverride"="0413:00020409"
+
+[HKEY_USERS\.DEFAULT\Control Panel\International\User Profile System Backup\nl-NL]
+"CachedLanguageName"="@Winlangdb.dll,-1545"
+"0413:00020409"=dword:00000001
+
+[HKEY_USERS\.DEFAULT\Keyboard Layout]
+
+[HKEY_USERS\.DEFAULT\Keyboard Layout\Preload]
+"1"="00000413"
+
+[HKEY_USERS\.DEFAULT\Keyboard Layout\Substitutes]
+
+[HKEY_USERS\.DEFAULT\Keyboard Layout\Toggle]
+
+[HKEY_USERS\.DEFAULT\Control Panel\Desktop\MuiCached]
+"MachinePreferredUILanguages"=hex(7):6e,00,6c,00,2d,00,4e,00,4c,00,00,00,00,00
+
+[HKEY_USERS\.DEFAULT\Control Panel\Desktop]
+"PreferredUILanguages"=hex(7):6e,00,6c,00,2d,00,4e,00,4c,00,00,00,00,00

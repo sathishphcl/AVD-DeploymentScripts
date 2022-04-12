@@ -56,7 +56,7 @@ jobs:
               write-host $ManagedIdenityName "already exists"
           }
           
-          # Assign the identity resource and principle ID's to a variable
+          # Assign the identity resource and principal ID's to a variable
           $identityNamePrincipalId = (Get-AzUserAssignedIdentity -ResourceGroupName $ResourceGroup -Name $ManagedIdenityName).PrincipalId
 
           # Temp location for the ARM template that will be used by this script (discarded when runbook is finished)
@@ -76,7 +76,7 @@ jobs:
           New-AzRoleDefinition -InputFile $jsonARMTemplateFile
           Start-sleep -Seconds 30
 
-          # Grant the Role Definition to the Image Builder Service Principle
+          # Grant the Role Definition to the Image Builder Service Principal
           $RoleAssignParams = @{
               ObjectId = $identityNamePrincipalId
               RoleDefinitionName = $imageRoleDefName
