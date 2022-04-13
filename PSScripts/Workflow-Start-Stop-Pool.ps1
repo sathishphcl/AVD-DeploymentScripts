@@ -6,14 +6,14 @@
 #>
 <#
 .SYNOPSIS
-  Reboots VMs in a HostPool
+  Start or stop all hosts in specific HostPool
 .DESCRIPTION
-  This will iterate through the VMs registered to a host pool and reboot them. 
+  Start or Stop all session hosts in specific HostPool.
 .NOTES
   Version:        1.0
   Author:         Ivo Uenk
   Creation Date:  2021-09-13
-  Purpose/Change: Start or Stop all session hosts in specific host pool.
+  Purpose/Change: Start or Stop all session hosts in specific HostPool.
 #>
 
 workflow Ucorp-Workflow-Start-Stop-Pool
