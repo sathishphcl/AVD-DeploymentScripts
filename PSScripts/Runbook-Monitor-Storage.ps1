@@ -12,7 +12,7 @@
 .NOTES
   Version:        1.1
   Author:         Ivo Uenk
-  Creation Date:  2022-5-30
+  Creation Date:  2022-05-30
   Purpose/Change: Monitoring available storage
 #>
 

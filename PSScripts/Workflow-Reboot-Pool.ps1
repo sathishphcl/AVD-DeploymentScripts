@@ -12,11 +12,11 @@
 .NOTES
   Version:        1.0
   Author:         Ivo Uenk
-  Creation Date:  2021-07-01
+  Creation Date:  2022-05-30
   Purpose/Change: Rebooting Session Hosts
 #>
 
-workflow Ucorp-Workflow-Reboot-Pool
+workflow Ucorp-AVD-Reboot-Pool
 
 {
     Param (
@@ -36,28 +36,14 @@ workflow Ucorp-Workflow-Reboot-Pool
 
     $ErrorActionPreference = 'SilentlyContinue'
 
-    $connectionName = "AzureRunAsConnection"
-    try
-    {
-        # Get the connection "AzureRunAsConnection "
-        $servicePrincipalConnection = Get-AutomationConnection -Name $connectionName       
-        "Logging in to Azure..."
-        Connect-AzAccount `
-            -ServicePrincipal `
-            -TenantId $servicePrincipalConnection.TenantId `
-            -ApplicationId $servicePrincipalConnection.ApplicationId `
-            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
-    }
-    catch {
-        if (!$servicePrincipalConnection)
-        {
-            $ErrorMessage = "Connection $connectionName not found."
-            throw $ErrorMessage
-        } else{
-            Write-Error -Message $_.Exception
-            throw $_.Exception
-        }
-    }
+    # Get the credential from Automation  
+	$credential = Get-AutomationPSCredential -Name 'ucorp-avd-credentials'  
+	$userName = $credential.UserName  
+	$securePassword = $credential.Password
+	$Creds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword
+
+	# Connect to Microsoft services
+	Connect-AzAccount -Credential $Creds
 
     Write-Output "Starting to Enable Boot Diagnostics for VMs in Host Pool $HostPoolName ..."
     if ($OnlyDoIfNeedsAttention) {
@@ -112,6 +98,5 @@ workflow Ucorp-Workflow-Reboot-Pool
         }
 
     }
-
 
 }
