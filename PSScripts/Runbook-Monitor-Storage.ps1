@@ -25,8 +25,8 @@ $userName = $credential.UserName
 $securePassword = $credential.Password
 
 # Get credential from Azure Automation and connect to AZ Account
-$psCredential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword
-Connect-AzAccount -Credential $psCredential
+$Creds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword
+Connect-AzAccount -Credential $Creds
 
 $Subscriptions = Get-AzSubscription  | Where-Object { $_.State -eq 'Enabled' } | Sort-Object -Unique -Property Id
 $fileShares = foreach ($Sub in $Subscriptions) {
@@ -92,5 +92,5 @@ if (!$QuotaReached) {
 }
 else {
     Write-Output "Unhealthy. Please check diagnostic data"
-    Send-MailMessage -UseSsl -From $mailConfig.Sender -To $mailConfig.Recipients -SmtpServer $mailConfig.SMTPServer -Port $mailConfig.SMTPPort -Subject $mailConfig.Header -Body $bodyTemplate -Credential $creds -BodyAsHtml
+    Send-MailMessage -UseSsl -From $mailConfig.Sender -To $mailConfig.Recipients -SmtpServer $mailConfig.SMTPServer -Port $mailConfig.SMTPPort -Subject $mailConfig.Header -Body $bodyTemplate -Credential $Creds -BodyAsHtml
 }
