@@ -50,7 +50,7 @@ jobs:
 
           # Create the user identity if needed
           try {
-              New-AzUserAssignedIdentity -ResourceGroupName $ResourceGroup -Name $ManagedIdenityName -ErrorAction Stop
+              New-AzUserAssignedIdentity -ResourceGroupName $ResourceGroup -Name $ManagedIdenityName -Location "westeurope" -ErrorAction Stop
               Start-sleep -Seconds 10
           } catch {
               write-host $ManagedIdenityName "already exists"
