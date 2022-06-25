@@ -1,32 +1,49 @@
 ﻿<#PSScriptInfo
-.VERSION 1.1
+.VERSION 1.0
 .AUTHOR Ivo Uenk
 .RELEASENOTES
 
 #>
 <#
 .SYNOPSIS
-  Monitoring available storage
+  Monitoring available free space on Azure File Share(s)
 .DESCRIPTION
-  This will iterate through the storage accounts and checks available space left
+  This will iterate through the storage accounts and checks available space on Azure File Share(s)
 .NOTES
-  Version:        1.1
+  Version:        1.0
   Author:         Ivo Uenk
-  Creation Date:  2022-05-30
-  Purpose/Change: Monitoring available storage
+  Creation Date:  2021-10-11
+  Purpose/Change: Monitoring available storage on Azure File Share(s)
 #>
 
 # Variables
 $MinimumFreeGB = '20'
+$creds = Get-AutomationPSCredential -Name "ucorp-mail-user"
 
-# Get the credential from Automation  
-$credential = Get-AutomationPSCredential -Name 'ucorp-avd-credentials'  
-$userName = $credential.UserName  
-$securePassword = $credential.Password
+$ErrorActionPreference = 'SilentlyContinue'
 
-# Get credential from Azure Automation and connect to AZ Account
-$Creds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword
-Connect-AzAccount -Credential $Creds
+$connectionName = "AzureRunAsConnection"
+try
+{
+    # Get the connection "AzureRunAsConnection "
+    $servicePrincipalConnection = Get-AutomationConnection -Name $connectionName       
+    "Logging in to Azure..."
+    Connect-AzAccount `
+        -ServicePrincipal `
+        -TenantId $servicePrincipalConnection.TenantId `
+        -ApplicationId $servicePrincipalConnection.ApplicationId `
+        -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
+}
+catch {
+    if (!$servicePrincipalConnection)
+    {
+        $ErrorMessage = "Connection $connectionName not found."
+        throw $ErrorMessage
+    } else{
+        Write-Error -Message $_.Exception
+        throw $_.Exception
+    }
+}
 
 $Subscriptions = Get-AzSubscription  | Where-Object { $_.State -eq 'Enabled' } | Sort-Object -Unique -Property Id
 $fileShares = foreach ($Sub in $Subscriptions) {
@@ -92,5 +109,5 @@ if (!$QuotaReached) {
 }
 else {
     Write-Output "Unhealthy. Please check diagnostic data"
-    Send-MailMessage -UseSsl -From $mailConfig.Sender -To $mailConfig.Recipients -SmtpServer $mailConfig.SMTPServer -Port $mailConfig.SMTPPort -Subject $mailConfig.Header -Body $bodyTemplate -Credential $Creds -BodyAsHtml
+    Send-MailMessage -UseSsl -From $mailConfig.Sender -To $mailConfig.Recipients -SmtpServer $mailConfig.SMTPServer -Port $mailConfig.SMTPPort -Subject $mailConfig.Header -Body $bodyTemplate -Credential $creds -BodyAsHtml
 }

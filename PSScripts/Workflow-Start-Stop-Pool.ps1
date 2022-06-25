@@ -6,17 +6,17 @@
 #>
 <#
 .SYNOPSIS
-  Start or stop all hosts in specific HostPool
+  Reboots VMs in a HostPool
 .DESCRIPTION
-  Start or Stop all session hosts in specific HostPool.
+  This will iterate through the VMs registered to a host pool and reboot them. 
 .NOTES
   Version:        1.0
   Author:         Ivo Uenk
-  Creation Date:  2021-09-13
-  Purpose/Change: Start or Stop all session hosts in specific HostPool.
+  Creation Date:  2022-05-30
+  Purpose/Change: Start or Stop all session hosts in specific host pool.
 #>
 
-workflow Ucorp-Workflow-Start-Stop-Pool
+workflow Ucorp-AVD-Start-Stop-Pool
 
 {
     Param (
@@ -34,28 +34,14 @@ workflow Ucorp-Workflow-Start-Stop-Pool
 
     $ErrorActionPreference = 'SilentlyContinue'
 
-    $connectionName = "AzureRunAsConnection"
-    try
-    {
-        # Get the connection "AzureRunAsConnection "
-        $servicePrincipalConnection = Get-AutomationConnection -Name $connectionName       
-        "Logging in to Azure..."
-        Connect-AzAccount `
-            -ServicePrincipal `
-            -TenantId $servicePrincipalConnection.TenantId `
-            -ApplicationId $servicePrincipalConnection.ApplicationId `
-            -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
-    }
-    catch {
-        if (!$servicePrincipalConnection)
-        {
-            $ErrorMessage = "Connection $connectionName not found."
-            throw $ErrorMessage
-        } else{
-            Write-Error -Message $_.Exception
-            throw $_.Exception
-        }
-    }
+	# Get the credential from Automation  
+	$credential = Get-AutomationPSCredential -Name 'ucorp-avd-credentials'  
+	$userName = $credential.UserName  
+	$securePassword = $credential.Password
+
+	# Connect to Microsoft services
+	$Creds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword
+	Connect-AzAccount -Credential $Creds
 
     Write-Output "Starting to run Start or Stop VMs in Host Pool $HostPoolName ..."
     $sessionHosts = Get-AzWvdSessionHost -ResourceGroupName $HostPoolResourceGroupName -HostPoolName $HostPoolName

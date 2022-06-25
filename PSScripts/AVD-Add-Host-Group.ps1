@@ -1,5 +1,5 @@
 $TargetGroup = "SG_AVD_Hosts"
-$TargetOU = "OU=AVD,OU=Ucorp,DC=ucorp,DC=local"
+$TargetOU = "OU AVD hosts"
 
 $AVDHosts = Get-ADComputer -Filter * | Where-Object {$_.DistinguishedName -like "*$TargetOU*" -and $_.Enabled -eq "True"}
 
