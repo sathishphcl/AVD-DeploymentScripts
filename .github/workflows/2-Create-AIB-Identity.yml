@@ -28,6 +28,7 @@ jobs:
           $Version = "latest"
           $Sig = "ucorpavdsig" 
           $SigImageDefName = "Ucorp-AVD-Image"
+          $Generation = "V1"
           $ManagedIdenityName = "ucorp-aib-mi"
           $imageRoleDefName = "Azure Image Builder"
 
@@ -73,8 +74,13 @@ jobs:
           ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<rgName>',"$ResourceGroup") | Set-Content -Path $jsonARMTemplateFile
           ((Get-Content -path $jsonARMTemplateFile -Raw) -replace 'Azure Image Builder Service Image Creation Role',"$imageRoleDefName") | Set-Content -Path $jsonARMTemplateFile
 
-          New-AzRoleDefinition -InputFile $jsonARMTemplateFile
-          Start-sleep -Seconds 30
+          # Verify if role exists else create
+          try {
+              New-AzRoleDefinition -InputFile $jsonARMTemplateFile -ErrorAction Stop
+              Start-sleep -Seconds 30
+          } catch {
+              write-host $imageRoleDefName "already exists"
+          }
 
           # Grant the Role Definition to the Image Builder Service Principal
           $RoleAssignParams = @{
@@ -82,18 +88,26 @@ jobs:
               RoleDefinitionName = $imageRoleDefName
               Scope = "/subscriptions/${{secrets.AZURE_SUBSCRIPTIONID}}/resourceGroups/$ResourceGroup"
             }
-          New-AzRoleAssignment @RoleAssignParams
-          Start-sleep -Seconds 30
-
-          # Verify Role Assignment
-          Get-AzRoleAssignment -ObjectId $identityNamePrincipalId | Select-Object DisplayName,RoleDefinitionName
-
-          # Create the Shared Image Gallery if needed
+          
           try {
-              Get-AzGallery -GalleryName $Sig -ResourceGroupName $ResourceGroup -ErrorAction Stop
+              New-AzRoleAssignment @RoleAssignParams -ErrorAction Stop
+              Start-sleep -Seconds 30
           } catch {
-              New-AzGallery -GalleryName $Sig -ResourceGroupName $ResourceGroup -Location "westeurope"
+              write-host $ManagedIdenityName "already exists to role" $imageRoleDefName
           }
-          New-AzGalleryImageDefinition -GalleryName $Sig -ResourceGroupName $ResourceGroup -Location "westeurope" -Name $SigImageDefName -OsState generalized -OsType Windows -Publisher $Publisher -Offer $Offer -Sku $Sku
+
+          # Create the Azure Compute Gallery if needed
+          try {
+              New-AzGallery -GalleryName $Sig -ResourceGroupName $ResourceGroup -Location "westeurope"
+          } catch {
+              write-host $Sig "already exists"
+          }
+
+          # Create the VM Image Definition if needed
+          try {
+              New-AzGalleryImageDefinition -GalleryName $Sig -ResourceGroupName $ResourceGroup -Location "westeurope" -Name $SigImageDefName -HyperVGeneration $Generation -OsState generalized -OsType Windows -Publisher $Publisher -Offer $Offer -Sku $Sku -ErrorAction Stop
+          } catch {
+              write-host $SigImageDefName "already exists"
+          }
 
         azPSVersion: 'latest'
