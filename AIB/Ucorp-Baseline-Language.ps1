@@ -69,22 +69,22 @@ Disable-ScheduledTask -TaskPath "\Microsoft\Windows\AppxDeploymentClient\" -Task
 #}
 
 # Set preferred UI language
-try {
-    New-ItemProperty -ErrorAction Stop -Path "HKLM:\SYSTEM\CurrentControlSet\Control\MUI\Settings" -Name "PreferredUILanguages" -Value $systemlocale -PropertyType MultiString -Force
-    if ((Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\MUI\Settings").PSObject.Properties.Name -contains "PreferredUILanguages") {
-        Write-Log -LogOutput ("Added time zone redirection registry key") -Path $LogFile
-    }
-    else {
-        Write-Log -LogOutput ("Error locating the Teams registry key") -Path $LogFile
-    }
-}
-catch {
-    $ErrorMessage = $_.Exception.message
-    Write-Log -LogOutput ("Error adding teams registry KEY: $ErrorMessage") -Path $LogFile
-}
+#try {
+#    New-ItemProperty -ErrorAction Stop -Path "HKLM:\SYSTEM\CurrentControlSet\Control\MUI\Settings" -Name "PreferredUILanguages" -Value $systemlocale -PropertyType MultiString -Force
+#    if ((Get-ItemProperty "HKLM:\SYSTEM\CurrentControlSet\Control\MUI\Settings").PSObject.Properties.Name -contains "PreferredUILanguages") {
+#        Write-Log -LogOutput ("Added time zone redirection registry key") -Path $LogFile
+#    }
+#    else {
+#        Write-Log -LogOutput ("Error locating the Teams registry key") -Path $LogFile
+#    }
+#}
+#catch {
+#    $ErrorMessage = $_.Exception.message
+#    Write-Log -LogOutput ("Error adding teams registry KEY: $ErrorMessage") -Path $LogFile
+#}
 
 # Update installed Inbox Store Apps added in this step because language is changed to nl-NL
-$lp_root_folder = "$path\Language"
+#$lp_root_folder = "$path\Language"
 #foreach ($App in (Get-AppxProvisionedPackage -Online)) {
 #	$AppPath = $lp_root_folder + "\APP\" + $App.DisplayName + '_' + $App.PublisherId
 #	Write-Log -LogOutput ("Handling $AppPath") -Path $LogFile
@@ -107,18 +107,18 @@ $lp_root_folder = "$path\Language"
 #}
 
 # Configure language settings for Current user > Welcome screen > New accounts
-Write-Log -LogOutput ("$systemlocale - Setting language Current user > Welcome screen > New accounts") -Path $LogFile
-$DefaultHKEY = "HKU\DEFAULT_USER"
-$DefaultRegPath = "C:\Users\Default\NTUSER.DAT"
+#Write-Log -LogOutput ("$systemlocale - Setting language Current user > Welcome screen > New accounts") -Path $LogFile
+#$DefaultHKEY = "HKU\DEFAULT_USER"
+#$DefaultRegPath = "C:\Users\Default\NTUSER.DAT"
 
-Set-Culture -CultureInfo $systemlocale
-Set-WinSystemLocale -SystemLocale $systemlocale
-Set-WinHomeLocation -GeoId 176
-Set-WinUserLanguageList $systemlocale -Force
-Set-WinUILanguageOverride $systemlocale
+#Set-Culture -CultureInfo $systemlocale
+#Set-WinSystemLocale -SystemLocale $systemlocale
+#Set-WinHomeLocation -GeoId 176
+#Set-WinUserLanguageList $systemlocale -Force
+#Set-WinUILanguageOverride $systemlocale
 #reg load $DefaultHKEY $DefaultRegPath
 #reg import "$lp_root_folder\nl-nl-default.reg"
 #reg unload $DefaultHKEY
 #reg import "$lp_root_folder\nl-nl-welkom.reg"
 
-Set-TimeZone -Id "W. Europe Standard Time"
+#Set-TimeZone -Id "W. Europe Standard Time"
