@@ -60,6 +60,18 @@
                         "name": "ConfigureBaseline",
                         "runElevated": true,
                         "runAsSystem": true,
+                        "scriptUri": "<BaselineLanguage>"
+                    },
+                    {
+                        "type": "WindowsRestart",
+                        "restartCheckCommand": "write-host 'Restarting for language configuration'",
+                        "restartTimeout": "5m"
+                    },
+                    {
+                        "type": "PowerShell",
+                        "name": "ConfigureBaseline",
+                        "runElevated": true,
+                        "runAsSystem": true,
                         "scriptUri": "<BaselineConfiguration>"
                     },
                     {

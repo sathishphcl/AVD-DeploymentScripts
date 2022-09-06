@@ -85,26 +85,26 @@ catch {
 
 # Update installed Inbox Store Apps added in this step because language is changed to nl-NL
 $lp_root_folder = "$path\Language"
-foreach ($App in (Get-AppxProvisionedPackage -Online)) {
-	$AppPath = $lp_root_folder + "\APP\" + $App.DisplayName + '_' + $App.PublisherId
-	Write-Log -LogOutput ("Handling $AppPath") -Path $LogFile
-	$licFile = Get-Item $AppPath*.xml
-	if ($licFile.Count) {
-		$lic = $true
-		$licFilePath = $licFile.FullName
-	} else {
-		$lic = $false
-	}
-	$appxFile = Get-Item $AppPath*.appx*
-	if ($appxFile.Count) {
-		$appxFilePath = $appxFile.FullName
-		if ($lic) {
-			Add-AppxProvisionedPackage -Online -PackagePath $appxFilePath -LicensePath $licFilePath 
-		} else {
-			Add-AppxProvisionedPackage -Online -PackagePath $appxFilePath -skiplicense
-		}
-	}
-}
+#foreach ($App in (Get-AppxProvisionedPackage -Online)) {
+#	$AppPath = $lp_root_folder + "\APP\" + $App.DisplayName + '_' + $App.PublisherId
+#	Write-Log -LogOutput ("Handling $AppPath") -Path $LogFile
+#	$licFile = Get-Item $AppPath*.xml
+#	if ($licFile.Count) {
+#		$lic = $true
+#		$licFilePath = $licFile.FullName
+#	} else {
+#		$lic = $false
+#	}
+#	$appxFile = Get-Item $AppPath*.appx*
+#	if ($appxFile.Count) {
+#		$appxFilePath = $appxFile.FullName
+#		if ($lic) {
+#			Add-AppxProvisionedPackage -Online -PackagePath $appxFilePath -LicensePath $licFilePath 
+#		} else {
+#			Add-AppxProvisionedPackage -Online -PackagePath $appxFilePath -skiplicense
+#		}
+#	}
+#}
 
 # Configure language settings for Current user > Welcome screen > New accounts
 Write-Log -LogOutput ("$systemlocale - Setting language Current user > Welcome screen > New accounts") -Path $LogFile
