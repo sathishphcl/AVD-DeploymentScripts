@@ -43,30 +43,30 @@ Write-Log -LogOutput ("Downloading en extracting Language Files") -Path $LogFile
 Disable-ScheduledTask -TaskPath "\Microsoft\Windows\AppxDeploymentClient\" -TaskName "Pre-staged app cleanup"
 
 # Start installation of language pack on Win10 2004 and higher
-foreach ($language in Get-ChildItem -Path "$lp_root_folder\LXP") {
+#foreach ($language in Get-ChildItem -Path "$lp_root_folder\LXP") {
     # Check if files exist
 
-    $appxfile = $lp_root_folder + "\LXP\" + $language.Name + "\LanguageExperiencePack." + $language.Name + ".Neutral.appx"
-    $licensefile = $lp_root_folder + "\LXP\" + $language.Name + "\License.xml"
-    $cabfile = $lp_root_folder + "\LangPack\Microsoft-Windows-Client-Language-Pack_" + $architecture + "_" + $language.Name + ".cab"
+ #   $appxfile = $lp_root_folder + "\LXP\" + $language.Name + "\LanguageExperiencePack." + $language.Name + ".Neutral.appx"
+ #   $licensefile = $lp_root_folder + "\LXP\" + $language.Name + "\License.xml"
+ #   $cabfile = $lp_root_folder + "\LangPack\Microsoft-Windows-Client-Language-Pack_" + $architecture + "_" + $language.Name + ".cab"
    
-    if (!(Test-Path $appxfile)) {
-        Write-Log -LogOutput ("$language file missing: $appxfile") -Path $LogFile
-        Write-Log -LogOutput ("Skipping installation of $language") -Path $LogFile
-    } elseif (!(Test-Path $licensefile)) {
-        Write-Log -LogOutput ("$language.file missing: $licensefile") -Path $LogFile
-        Write-Log -LogOutput ("Skipping installation of $language") -Path $LogFile
-    } elseif (!(Test-Path $cabfile)) {
-        Write-Log -LogOutput ("$language file missing: $cabfile") -Path $LogFile
-        Write-Log -LogOutput ("Skipping installation of $language") -Path $LogFile
-    } else {
-        Write-Log -LogOutput ("$language installing $cabfile") -Path $LogFile
-        Add-WindowsPackage -Online -PackagePath $cabfile
+ #   if (!(Test-Path $appxfile)) {
+ #       Write-Log -LogOutput ("$language file missing: $appxfile") -Path $LogFile
+ #       Write-Log -LogOutput ("Skipping installation of $language") -Path $LogFile
+ #   } elseif (!(Test-Path $licensefile)) {
+ #       Write-Log -LogOutput ("$language.file missing: $licensefile") -Path $LogFile
+ #       Write-Log -LogOutput ("Skipping installation of $language") -Path $LogFile
+ #   } elseif (!(Test-Path $cabfile)) {
+ #       Write-Log -LogOutput ("$language file missing: $cabfile") -Path $LogFile
+ #       Write-Log -LogOutput ("Skipping installation of $language") -Path $LogFile
+ #   } else {
+ #       Write-Log -LogOutput ("$language installing $cabfile") -Path $LogFile
+ #       Add-WindowsPackage -Online -PackagePath $cabfile
 
-        Write-Log -LogOutput ("$language installing $appxfile") -Path $LogFile
-        Add-AppProvisionedPackage -Online -PackagePath $appxfile -LicensePath $licensefile
-     }
-}
+#        Write-Log -LogOutput ("$language installing $appxfile") -Path $LogFile
+#        Add-AppProvisionedPackage -Online -PackagePath $appxfile -LicensePath $licensefile
+#     }
+#}
 
 # Set preferred UI language
 try {
@@ -116,9 +116,9 @@ Set-WinSystemLocale -SystemLocale $systemlocale
 Set-WinHomeLocation -GeoId 176
 Set-WinUserLanguageList $systemlocale -Force
 Set-WinUILanguageOverride $systemlocale
-reg load $DefaultHKEY $DefaultRegPath
-reg import "$lp_root_folder\nl-nl-default.reg"
-reg unload $DefaultHKEY
-reg import "$lp_root_folder\nl-nl-welkom.reg"
+#reg load $DefaultHKEY $DefaultRegPath
+#reg import "$lp_root_folder\nl-nl-default.reg"
+#reg unload $DefaultHKEY
+#reg import "$lp_root_folder\nl-nl-welkom.reg"
 
 Set-TimeZone -Id "W. Europe Standard Time"
