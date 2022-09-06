@@ -57,7 +57,7 @@ jobs:
           ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<runOutputName>',$AIBImageVersion) | Set-Content -Path $jsonARMTemplateFile
           ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<galleryImageId>',$galleryImageId) | Set-Content -Path $jsonARMTemplateFile
           ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<imgBuilderId>',$imgBuilderId) | Set-Content -Path $jsonARMTemplateFile
-          ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<BaselineLanguage>',$BaselineLanguage) | Set-Content -Path $jsonARMTemplateFile
+          #((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<BaselineLanguage>',$BaselineLanguage) | Set-Content -Path $jsonARMTemplateFile
           ((Get-Content -path $jsonARMTemplateFile -Raw) -replace '<BaselineConfiguration>',$BaselineConfiguration) | Set-Content -Path $jsonARMTemplateFile
 
           ## Create a Template Parameter Object (hashtable)
